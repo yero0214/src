@@ -9,30 +9,60 @@ import (
 )
 
 func main() {
-	arguments := os.Args
-	if len(arguments) == 1 {
-		fmt.Println("Please provide host:port.")
-		return
-	}
-
-	CONNECT := arguments[1]
-	conn, err := net.Dial("tcp", "127.0.0.1:"+CONNECT)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
+	fmt.Println("Type 'connect'")
 	for {
-		reader := bufio.NewReader(os.Stdin)
-		fmt.Print(">> ")
-		text, _ := reader.ReadString('\n')
-		fmt.Fprintf(conn, text+"\n")
-
-		message, _ := bufio.NewReader(conn).ReadString('\n')
-		fmt.Print("->: " + message)
-		if strings.TrimSpace(string(text)) == "STOP" {
-			fmt.Println("TCP client exiting...")
-			return
+		text := read()
+		if text == "connect" {
+			break
 		}
 	}
+	conn := connect()
+	defer conn.Close()
+	fmt.Println("connected")
+
+	for {
+		var s string
+		fmt.Scanln(&s)
+		conn.Write([]byte(s))
+		// if text == "attack" {
+		// attack(conn)
+		// rec := receive(conn)
+		// fmt.Println(rec)
+		// } else if text == "heal" {
+		// 	heal(conn)
+		// 	rec := receive(conn)
+		// 	fmt.Println(rec)
+		// }
+
+	}
+}
+
+func read() string {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print(">> ")
+	text, _ := reader.ReadString('\n')
+	return strings.TrimSpace(text)
+}
+
+func connect() net.Conn {
+	conn, err := net.Dial("tcp", "127.0.0.1:9393")
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	return conn
+}
+
+func attack(conn net.Conn) {
+	conn.Write([]byte("attack"))
+}
+
+func heal(conn net.Conn) {
+	conn.Write([]byte("heal"))
+}
+
+func receive(conn net.Conn) string {
+	buf := make([]byte, 0, 4096)
+	message, _ := conn.Read(buf)
+	return string(message)
 }

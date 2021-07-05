@@ -34,10 +34,13 @@ public class client {
                 // Send the data through the socket.  
                 int bytesSent = sender.Send(msg);  
   
-                // Receive the response from the remote device.  
-                int bytesRec = sender.Receive(bytes);  
-                Console.WriteLine("Echoed test = {0}",  
+                // Receive the response from the remote device.
+                while(true){
+                    int bytesRec = sender.Receive(bytes);  
+                    Console.WriteLine("Echoed test = {0}",  
                     Encoding.ASCII.GetString(bytes,0,bytesRec));  
+                }  
+                
   
                 // Release the socket.  
                 sender.Shutdown(SocketShutdown.Both);  

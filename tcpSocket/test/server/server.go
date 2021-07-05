@@ -70,16 +70,18 @@ func main() {
 func findRoom(queue chan User, rooms Rooms) {
 	for {
 		user := <-queue
-		lastRoom := rooms.room[len(rooms.room)-1]
 		if len(rooms.room) == 0 {
-			rooms.room = append(rooms.room)
+			room := Room{}
+			rooms.room = append(rooms.room, room)
 		}
+		lastRoom := rooms.room[len(rooms.room)-1]
 		if len(lastRoom.users) < 2 {
 			lastRoom.users = append(lastRoom.users, user)
 		} else {
 			rooms.room = append(rooms.room)
 			lastRoom.users = append(lastRoom.users, user)
 		}
-		log.Println(lastRoom)
+		log.Println(len(rooms.room))
+		log.Println(len(lastRoom.users))
 	}
 }
