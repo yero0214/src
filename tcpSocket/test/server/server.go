@@ -18,9 +18,8 @@ type Room struct {
 }
 
 func main() {
-	var rooms Rooms
 	queue := make(chan User)
-	go findRoom(queue, rooms)
+	go findRoom(queue)
 
 	l, err := net.Listen("tcp", ":9393")
 	if nil != err {
@@ -67,21 +66,20 @@ func main() {
 // 	}
 // }
 
-func findRoom(queue chan User, rooms Rooms) {
+func findRoom(queue chan User) {
+	var rooms Rooms
 	for {
 		user := <-queue
 		if len(rooms.room) == 0 {
 			room := Room{}
 			rooms.room = append(rooms.room, room)
 		}
-		lastRoom := rooms.room[len(rooms.room)-1]
-		if len(lastRoom.users) < 2 {
-			lastRoom.users = append(lastRoom.users, user)
+		if len(rooms.room[len(rooms.room)-1].users) < 2 {
+			rooms.room[len(rooms.room)-1].users = append(rooms.room[len(rooms.room)-1].users, user)
 		} else {
-			rooms.room = append(rooms.room)
-			lastRoom.users = append(lastRoom.users, user)
+			room := Room{}
+			rooms.room = append(rooms.room, room)
+			rooms.room[len(rooms.room)-1].users = append(rooms.room[len(rooms.room)-1].users, user)
 		}
-		log.Println(len(rooms.room))
-		log.Println(len(lastRoom.users))
 	}
 }

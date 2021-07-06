@@ -18,7 +18,7 @@ type Room struct {
 }
 
 func main() {
-	var rooms Rooms
+	var rooms *Rooms
 	queue := make(chan User)
 	go findRoom(queue, rooms)
 
@@ -67,7 +67,7 @@ func main() {
 // 	}
 // }
 
-func findRoom(queue chan User, rooms Rooms) {
+func findRoom(queue chan User, rooms *Rooms) {
 	for {
 		user := <-queue
 		lastRoom := rooms.room[len(rooms.room)-1]

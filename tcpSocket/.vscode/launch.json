@@ -9,7 +9,14 @@
             "program": "c:/Users/USER/go/src/tcpSocket/server/server.go",
             "args": ["9393"]
         },
-    
+        {
+            "name": "tcpServerTest",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "c:/Users/USER/go/src/tcpSocket/test/server/server.go",
+            "args": ["9393"]
+        },
         {
             // Use IntelliSense to find out which attributes exist for C# debugging
             // Use hover for the description of the existing attributes
