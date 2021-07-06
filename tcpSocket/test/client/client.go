@@ -6,14 +6,16 @@ import (
 	"log"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 )
 
 func main() {
-	fmt.Println("Type 'connect'")
+	var roomNo string
+	fmt.Println("Type 'start' to start match making")
 	for {
 		text := read()
-		if text == "connect" {
+		if text == "start" {
 			break
 		}
 	}
@@ -23,7 +25,8 @@ func main() {
 		log.Println(err)
 	}
 
-	fmt.Println("connected")
+	fmt.Println("Finding Opponent...")
+	defer conn.Close()
 
 	go func() {
 		data := make([]byte, 4096)
@@ -34,19 +37,28 @@ func main() {
 				log.Println(err)
 				return
 			}
-
-			log.Println("Server send : " + string(data[:n]))
+			res := data[:n]
+			if string(res[:2]) == "01" {
+				len := string(res[2:4])
+				intlen, _ := strconv.Atoi(len)
+				roomNo = string(res[4 : intlen+4])
+			}
+			log.Println("Server send : " + string(res[:2]))
 		}
 	}()
 
 	for {
 		s := read()
+		if roomNo == "" {
+			continue
+		}
 		if s == "attack" {
-			attack(conn)
+			attack(conn, roomNo)
 		} else if s == "heal" {
-			heal(conn)
+			heal(conn, roomNo)
 		}
 	}
+
 }
 
 func read() string {
@@ -55,10 +67,10 @@ func read() string {
 	return strings.TrimSpace(text)
 }
 
-func attack(conn net.Conn) {
-	conn.Write([]byte("attack"))
+func attack(conn net.Conn, roomNo string) {
+	conn.Write([]byte("10" + "01" + "1"))
 }
 
-func heal(conn net.Conn) {
-	conn.Write([]byte("heal"))
+func heal(conn net.Conn, roomNo string) {
+	conn.Write([]byte("10" + "01" + "2"))
 }

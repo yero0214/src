@@ -83,3 +83,7 @@ func findRoom(queue chan User, rooms *Rooms) {
 		log.Println(lastRoom)
 	}
 }
+
+func matchStart(room Room) {
+
+}
