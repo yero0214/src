@@ -6,7 +6,6 @@ import (
 	"log"
 	"net"
 	"os"
-	"strconv"
 	"strings"
 )
 
@@ -38,12 +37,13 @@ func main() {
 				return
 			}
 			res := data[:n]
+
+			//match found
 			if string(res[:2]) == "01" {
-				len := string(res[2:4])
-				intlen, _ := strconv.Atoi(len)
-				roomNo = string(res[4 : intlen+4])
+				roomNo = string(res[2:4])
+				log.Println(roomNo)
 			}
-			log.Println("Server send : " + string(res[:2]))
+			fmt.Println(string(res))
 		}
 	}()
 
@@ -68,9 +68,9 @@ func read() string {
 }
 
 func attack(conn net.Conn, roomNo string) {
-	conn.Write([]byte("10" + "01" + "1"))
+	conn.Write([]byte("10" + roomNo + "01"))
 }
 
 func heal(conn net.Conn, roomNo string) {
-	conn.Write([]byte("10" + "01" + "2"))
+	conn.Write([]byte("10" + roomNo + "02"))
 }

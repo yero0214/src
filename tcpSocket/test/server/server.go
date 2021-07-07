@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -40,7 +41,7 @@ func main() {
 		}
 		defer conn.Close()
 
-		queue <- User{conn: conn}
+		queue <- User{conn: conn, health: 100, name: "test"}
 		go ConnHandler(conn, &rooms)
 	}
 }
@@ -58,20 +59,32 @@ func ConnHandler(conn net.Conn, rooms *Rooms) {
 			return
 		}
 
-		room := Room{}
-		log.Println(len(rooms.room))
-		// for i := range rooms.room {
-		// 	for j := range rooms.room[i].users {
-		// 		if rooms.room[i].users[j].conn == conn {
-		// 			room = rooms.room[i]
-		// 		}
-		// 	}
-		// }
-
 		if 0 < n {
 			data := recvBuf[:n]
-			log.Println(string(data))
-			broadCast(&room, data[:n])
+			fmt.Println(string(data[:n]))
+			if string(data[0:2]) == "10" {
+				roomNo, _ := strconv.Atoi(string(data[2:4]))
+				if string(data[4:6]) == "01" {
+					var str string
+					for index, _ := range rooms.room[roomNo].users {
+						if rooms.room[roomNo].users[index].conn != conn {
+							rooms.room[roomNo].users[index].health -= 10
+						}
+						str += " | " + rooms.room[roomNo].users[index].name + " " + strconv.Itoa(rooms.room[roomNo].users[index].health) + " | "
+					}
+					broadCast(&rooms.room[roomNo], []byte(str))
+
+				} else if string(data[4:6]) == "02" {
+					var str string
+					for index, _ := range rooms.room[roomNo].users {
+						if rooms.room[roomNo].users[index].conn == conn {
+							rooms.room[roomNo].users[index].health += 10
+						}
+						str += " | " + rooms.room[roomNo].users[index].name + " " + strconv.Itoa(rooms.room[roomNo].users[index].health) + " | "
+					}
+					broadCast(&rooms.room[roomNo], []byte(str))
+				}
+			}
 		}
 	}
 }
@@ -102,13 +115,13 @@ func findRoom(queue chan User, rooms *Rooms) {
 	}
 }
 
-func matchStart(room Room, roomNo int) {
-	len := len([]byte(strconv.Itoa(roomNo)))
-	var blen string
-	if len < 10 {
-		blen = "0" + strconv.Itoa(len)
+func matchStart(room Room, intRoomNo int) {
+	var roomNo string
+	if intRoomNo < 10 {
+		roomNo = "0" + strconv.Itoa(intRoomNo)
 	} else {
-		blen = strconv.Itoa(len)
+		roomNo = strconv.Itoa(intRoomNo)
 	}
-	broadCast(&room, []byte("01"+blen+strconv.Itoa(roomNo)))
+
+	broadCast(&room, []byte("01"+roomNo))
 }
