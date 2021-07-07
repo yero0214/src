@@ -10,12 +10,12 @@ import (
 )
 
 func main() {
-	var roomNo string
 	var name string
-	state := false
+	var roomNo string
+	var state string
 	fmt.Println("Enter your name")
 	for {
-		text := read()
+		text := input()
 		if len(text) > 10 {
 			fmt.Println("less than 10 characters")
 		} else if len(text) < 1 {
@@ -28,7 +28,7 @@ func main() {
 	for {
 		fmt.Println("Type 'start' to start match making")
 		for {
-			text := read()
+			text := input()
 			if text == "start" {
 				break
 			}
@@ -38,34 +38,15 @@ func main() {
 		if nil != err {
 			log.Println(err)
 		}
-
+		state = "start"
 		fmt.Println("Finding Opponent...")
 		defer conn.Close()
 
-		go func() {
-			data := make([]byte, 4096)
-
-			for {
-				n, err := conn.Read(data)
-				if err != nil {
-					break
-				}
-				res := data[:n]
-
-				//match found
-				if string(res[:2]) == "01" {
-					roomNo = string(res[2:4])
-					conn.Write([]byte("11" + roomNo + name))
-					fmt.Println("Match found!")
-					state = true
-				}
-				fmt.Println(string(res))
-			}
-		}()
+		go read(conn, name, &roomNo, &state)
 
 		for {
-			s := read()
-			if !state {
+			s := input()
+			if state == "end" {
 				break
 			}
 			if roomNo == "" {
@@ -80,7 +61,7 @@ func main() {
 	}
 }
 
-func read() string {
+func input() string {
 	reader := bufio.NewReader(os.Stdin)
 	text, _ := reader.ReadString('\n')
 	return strings.TrimSpace(text)
@@ -92,4 +73,28 @@ func attack(conn net.Conn, roomNo string) {
 
 func heal(conn net.Conn, roomNo string) {
 	conn.Write([]byte("10" + roomNo + "02"))
+}
+
+func read(conn net.Conn, name string, roomNo *string, state *string) {
+	data := make([]byte, 4096)
+
+	for {
+		n, err := conn.Read(data)
+		if err != nil {
+			*roomNo = ""
+			*state = "end"
+			fmt.Println("Press enter to quit")
+			break
+		}
+		res := data[:n]
+
+		//match found
+		if string(res[:2]) == "01" {
+			*roomNo = string(res[2:4])
+			conn.Write([]byte("11" + *roomNo + name))
+			fmt.Println("Match found!")
+		} else {
+			fmt.Println(string(res))
+		}
+	}
 }

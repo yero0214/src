@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"strconv"
@@ -51,14 +50,18 @@ func ConnHandler(conn net.Conn, rooms *Rooms) {
 	for {
 		n, err := conn.Read(recvBuf)
 		if nil != err {
-			if io.EOF == err {
-				log.Println(err)
-				return
-			}
 			log.Println(err)
+			for i, _ := range rooms.room {
+				for j, _ := range rooms.room[i].users {
+					if rooms.room[i].users[j].conn == conn {
+						rooms.room[i].users[j].health = 0
+						gameStatus(&rooms.room[i])
+					}
+				}
+			}
 			return
 		}
-
+		defer conn.Close()
 		if 0 < n {
 			data := recvBuf[:n]
 			fmt.Println(string(data[:n]))
