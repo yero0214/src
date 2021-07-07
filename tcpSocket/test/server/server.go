@@ -41,7 +41,7 @@ func main() {
 		}
 		defer conn.Close()
 
-		queue <- User{conn: conn, health: 100, name: "test"}
+		queue <- User{conn: conn, health: 100}
 		go ConnHandler(conn, &rooms)
 	}
 }
@@ -62,7 +62,15 @@ func ConnHandler(conn net.Conn, rooms *Rooms) {
 		if 0 < n {
 			data := recvBuf[:n]
 			fmt.Println(string(data[:n]))
-			if string(data[0:2]) == "10" {
+			if string(data[:2]) == "11" {
+				roomNo, _ := strconv.Atoi(string(data[2:4]))
+				for index, _ := range rooms.room[roomNo].users {
+					if rooms.room[roomNo].users[index].conn == conn {
+						rooms.room[roomNo].users[index].name = string(data[4:])
+					}
+				}
+
+			} else if string(data[:2]) == "10" {
 				roomNo, _ := strconv.Atoi(string(data[2:4]))
 				if string(data[4:6]) == "01" {
 					var str string
@@ -73,6 +81,7 @@ func ConnHandler(conn net.Conn, rooms *Rooms) {
 						str += " | " + rooms.room[roomNo].users[index].name + " " + strconv.Itoa(rooms.room[roomNo].users[index].health) + " | "
 					}
 					broadCast(&rooms.room[roomNo], []byte(str))
+					gameStatus(&rooms.room[roomNo])
 
 				} else if string(data[4:6]) == "02" {
 					var str string
@@ -83,6 +92,7 @@ func ConnHandler(conn net.Conn, rooms *Rooms) {
 						str += " | " + rooms.room[roomNo].users[index].name + " " + strconv.Itoa(rooms.room[roomNo].users[index].health) + " | "
 					}
 					broadCast(&rooms.room[roomNo], []byte(str))
+					gameStatus(&rooms.room[roomNo])
 				}
 			}
 		}
@@ -93,6 +103,28 @@ func broadCast(room *Room, data []byte) {
 	for _, v := range room.users {
 		v.conn.Write(data)
 	}
+}
+
+func gameStatus(room *Room) {
+	for _, v := range room.users {
+		if v.health <= 0 {
+			gameEnd(room)
+			break
+		}
+	}
+}
+
+func gameEnd(room *Room) {
+	for _, v := range room.users {
+		if v.health <= 0 {
+			v.conn.Write([]byte("Defeat"))
+			v.conn.Close()
+		} else {
+			v.conn.Write([]byte("Victory"))
+			v.conn.Close()
+		}
+	}
+	room = nil
 }
 
 func findRoom(queue chan User, rooms *Rooms) {
