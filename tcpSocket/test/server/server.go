@@ -55,7 +55,7 @@ func ConnHandler(conn net.Conn, rooms *Rooms) {
 				for j, _ := range rooms.room[i].users {
 					if rooms.room[i].users[j].conn == conn {
 						rooms.room[i].users[j].health = 0
-						gameStatus(&rooms.room[i])
+						gameState(&rooms.room[i])
 					}
 				}
 			}
@@ -72,6 +72,20 @@ func ConnHandler(conn net.Conn, rooms *Rooms) {
 						rooms.room[roomNo].users[index].name = string(data[4:])
 					}
 				}
+				var str string
+				//if have both name
+				var users int
+				for _, v := range rooms.room[roomNo].users {
+					if v.name != "" {
+						users++
+					}
+				}
+				if users == 2 {
+					for index, _ := range rooms.room[roomNo].users {
+						str += " | " + rooms.room[roomNo].users[index].name + " " + strconv.Itoa(rooms.room[roomNo].users[index].health) + " | "
+					}
+					broadCast(&rooms.room[roomNo], []byte(str))
+				}
 
 			} else if string(data[:2]) == "10" {
 				roomNo, _ := strconv.Atoi(string(data[2:4]))
@@ -84,7 +98,7 @@ func ConnHandler(conn net.Conn, rooms *Rooms) {
 						str += " | " + rooms.room[roomNo].users[index].name + " " + strconv.Itoa(rooms.room[roomNo].users[index].health) + " | "
 					}
 					broadCast(&rooms.room[roomNo], []byte(str))
-					gameStatus(&rooms.room[roomNo])
+					gameState(&rooms.room[roomNo])
 
 				} else if string(data[4:6]) == "02" {
 					var str string
@@ -95,7 +109,18 @@ func ConnHandler(conn net.Conn, rooms *Rooms) {
 						str += " | " + rooms.room[roomNo].users[index].name + " " + strconv.Itoa(rooms.room[roomNo].users[index].health) + " | "
 					}
 					broadCast(&rooms.room[roomNo], []byte(str))
-					gameStatus(&rooms.room[roomNo])
+					gameState(&rooms.room[roomNo])
+
+				} else if string(data[4:6]) == "00" {
+					var str string
+					for index, _ := range rooms.room[roomNo].users {
+						if rooms.room[roomNo].users[index].conn != conn {
+							rooms.room[roomNo].users[index].health = 0
+						}
+						str += " | " + rooms.room[roomNo].users[index].name + " " + strconv.Itoa(rooms.room[roomNo].users[index].health) + " | "
+					}
+					broadCast(&rooms.room[roomNo], []byte(str))
+					gameState(&rooms.room[roomNo])
 				}
 			}
 		}
@@ -108,7 +133,7 @@ func broadCast(room *Room, data []byte) {
 	}
 }
 
-func gameStatus(room *Room) {
+func gameState(room *Room) {
 	for _, v := range room.users {
 		if v.health <= 0 {
 			gameEnd(room)

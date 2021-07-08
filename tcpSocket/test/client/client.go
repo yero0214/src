@@ -52,7 +52,9 @@ func main() {
 			if roomNo == "" {
 				continue
 			}
-			if s == "attack" {
+			if s == "mu" {
+				mu(conn, roomNo)
+			} else if s == "attack" {
 				attack(conn, roomNo)
 			} else if s == "heal" {
 				heal(conn, roomNo)
@@ -69,6 +71,10 @@ func input() string {
 
 func attack(conn net.Conn, roomNo string) {
 	conn.Write([]byte("10" + roomNo + "01"))
+}
+
+func mu(conn net.Conn, roomNo string) {
+	conn.Write([]byte("10" + roomNo + "00"))
 }
 
 func heal(conn net.Conn, roomNo string) {
