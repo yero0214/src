@@ -65,6 +65,7 @@ func ConnHandler(conn net.Conn, rooms *Rooms) {
 		if 0 < n {
 			data := recvBuf[:n]
 			fmt.Println(string(data[:n]))
+
 			if string(data[:2]) == "11" {
 				roomNo, _ := strconv.Atoi(string(data[2:4]))
 				for index, _ := range rooms.room[roomNo].users {

@@ -6,7 +6,15 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "c:/Users/USER/go/src/tcpSocket/server/server.go",
+            "program": "c:/Users/USER/go/src/tcpSocket/server/main.go",
+            "args": ["9393"]
+        },
+        {
+            "name": "apiServer",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "c:/Users/USER/go/src/tcpSocket/api/main.go",
             "args": ["9393"]
         },
         {
