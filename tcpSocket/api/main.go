@@ -37,9 +37,8 @@ func login(w http.ResponseWriter, r *http.Request) {
 	var body Body
 	_ = json.NewDecoder(r.Body).Decode(&body)
 
-	conn().Raw("SELECT count(id) FROM user_list WHERE id = ? AND pwd = ? AND delyn = 'N'", body.ID, body.Pwd).Scan(&result)
+	conn().Raw("SELECT name FROM user_list WHERE id = ? AND pwd = ? AND delyn = 'N'", body.ID, body.Pwd).Scan(&result)
 	fmt.Println(result)
-
 	json.NewEncoder(w).Encode(result)
 }
 
@@ -47,32 +46,31 @@ func register(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var result Result
 	var body Body
-	var rtn int
 	_ = json.NewDecoder(r.Body).Decode(&body)
 
 	conn().Raw("INSERT INTO user_list (id, pwd, name, delyn, dttm) VALUES (?, ?, ?, 'N', now()) returning id", body.ID, body.Pwd, body.Name).Scan(&result)
-	if result.ID != "" {
-		rtn = 1
-	} else {
-		rtn = 0
-	}
-	json.NewEncoder(w).Encode(rtn)
+	fmt.Println(result)
+	json.NewEncoder(w).Encode(result)
 }
 
 func idCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	var result Result
-	var rtn string
 
 	conn().Raw("SELECT count(id) FROM user_list WHERE id = ?", params["id"]).Scan(&result)
 	fmt.Println(result)
-	if result.Count == 0 {
-		rtn = "suc"
-	} else {
-		rtn = "fail"
-	}
-	json.NewEncoder(w).Encode(rtn)
+	json.NewEncoder(w).Encode(result)
+}
+
+func nmCheck(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	var result Result
+
+	conn().Raw("SELECT count(name) FROM user_list WHERE name = ?", params["name"]).Scan(&result)
+	fmt.Println(result)
+	json.NewEncoder(w).Encode(result)
 }
 
 var upgrader = websocket.Upgrader{
@@ -85,7 +83,8 @@ func main() {
 
 	r.HandleFunc("/api/login", login).Methods("POST")
 	r.HandleFunc("/api/register", register).Methods("POST")
-	r.HandleFunc("/api/register/{id}", idCheck).Methods("GET")
+	r.HandleFunc("/api/register/idCheck/{id}", idCheck).Methods("GET")
+	r.HandleFunc("/api/register/nmCheck/{name}", nmCheck).Methods("GET")
 
 	handler := cors.Default().Handler(r)
 
@@ -93,7 +92,7 @@ func main() {
 }
 
 func conn() *gorm.DB {
-	dsn := "host=localhost user=postgres password=365365 dbname=postgres port=5432 sslmode=disable"
+	dsn := "host=218.50.42.8 user=postgres password=365365 dbname=postgres port=5432 sslmode=disable"
 	db, err := gorm.Open(postgres.Open(dsn))
 
 	if err != nil {

@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -13,45 +14,39 @@ import (
 )
 
 type Data struct {
-	Id   string
-	Pwd  string
-	Name string
-	Cnt  string
+	Id    string `json:"ID"`
+	Pwd   string `json:"Pwd"`
+	Name  string `json:"Name"`
+	Count int    `json:"Count"`
 }
 
 func main() {
-	// for {
-	// 	fmt.Println("Enter")
-	// 	fmt.Println("'login' to login")
-	// 	fmt.Println("'register' to register")
-
-	// 	text := input()
-	// 	if text == "login" {
-	// 		fmt.Print(login())
-	// 		// if login() == 1 {
-
-	// 		// 	break
-	// 		// }
-	// 		fmt.Println("user not found")
-	// 	} else if text == "register" {
-	// 		register()
-	// 	}
-	// }
 	var name string
 	var roomNo string
 	var state string
-	fmt.Println("Enter your name")
+
 	for {
+		fmt.Println("'login' to login")
+		fmt.Println("'register' to register")
+
 		text := input()
-		if len(text) > 10 {
-			fmt.Println("less than 10 characters")
-		} else if len(text) < 1 {
-			fmt.Println("at least one character")
-		} else {
-			name = text
-			break
+		if text == "login" {
+			data := login()
+			if data.Name != "" {
+				name = data.Name
+				fmt.Println("login success")
+				break
+			}
+			fmt.Println("user not found")
+		} else if text == "register" {
+			if register().Id != "" {
+				fmt.Println("register success")
+			} else {
+				fmt.Println("register fail")
+			}
 		}
 	}
+
 	for {
 		fmt.Println("Type 'start' to start match making")
 		for {
@@ -61,7 +56,7 @@ func main() {
 			}
 		}
 
-		conn, err := net.Dial("tcp", ":9393")
+		conn, err := net.Dial("tcp", "218.50.42.8:9393")
 		if nil != err {
 			log.Println(err)
 		}
@@ -108,7 +103,7 @@ func read(conn net.Conn, name string, roomNo *string, state *string) {
 	}
 }
 
-func login() string {
+func login() Data {
 	var id string
 	var pwd string
 	for {
@@ -126,12 +121,51 @@ func login() string {
 		}
 	}
 	result := apiCall("POST", "http://localhost:9494/api/login", `{"ID":"`+id+`", "Pwd":"`+pwd+`"}`)
-	fmt.Println(result)
-	return result.Cnt
+	return result
 }
 
-func register() {
+func register() Data {
+	var id string
+	var pwd string
+	var name string
 
+	for {
+		fmt.Print("id : ")
+		id = input()
+		if id != "" {
+			result := apiCall("GET", "http://localhost:9494/api/register/idCheck/"+id, `{}`)
+			if result.Count > 0 {
+				fmt.Println("id already exist")
+			} else {
+				break
+			}
+		}
+	}
+	for {
+		fmt.Print("password : ")
+		pwd = input()
+		if pwd != "" {
+			break
+		}
+	}
+	for {
+		fmt.Print("name : ")
+		name = input()
+		if len(name) > 10 {
+			fmt.Println("less than 10 characters")
+		} else if len(name) < 1 {
+			fmt.Println("at least one character")
+		} else {
+			result := apiCall("GET", "http://localhost:9494/api/register/nmCheck/"+name, `{}`)
+			if result.Count > 0 {
+				fmt.Println("name already exist")
+			} else {
+				break
+			}
+		}
+	}
+	result := apiCall("POST", "http://localhost:9494/api/register", `{"ID":"`+id+`", "Pwd":"`+pwd+`", "Name":"`+name+`"}`)
+	return result
 }
 
 func skills(text string, conn net.Conn, roomNo string) {
@@ -177,6 +211,6 @@ func apiCall(method string, url string, str string) Data {
 	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
-	data.Cnt = string(body)
+	json.Unmarshal(body, &data)
 	return data
 }
