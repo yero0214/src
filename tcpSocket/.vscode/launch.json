@@ -10,6 +10,14 @@
             "args": ["9393"]
         },
         {
+            "name": "v2server",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "c:/Users/USER/go/src/tcpSocket/v2/server/main.go",
+            "args": ["9393"]
+        },
+        {
             "name": "apiServer",
             "type": "go",
             "request": "launch",

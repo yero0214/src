@@ -14,16 +14,22 @@ import (
 )
 
 type Data struct {
-	Id    string `json:"ID"`
-	Pwd   string `json:"Pwd"`
-	Name  string `json:"Name"`
-	Count int    `json:"Count"`
+	Id     string `json:"ID"`
+	Pwd    string `json:"Pwd"`
+	Name   string `json:"Name"`
+	Status string `json:"Status"`
+	Count  int    `json:"Count"`
 }
 
 func main() {
 	var name string
 	var roomNo string
 	var state string
+
+	conn, err := net.Dial("tcp", "218.50.42.8:9393")
+	if nil != err {
+		log.Println(err)
+	}
 
 	for {
 		fmt.Println("'login' to login")
@@ -33,9 +39,15 @@ func main() {
 		if text == "login" {
 			data := login()
 			if data.Name != "" {
-				name = data.Name
-				fmt.Println("login success")
-				break
+				if checkStatus(data.Id).Status == "offline" {
+					conn.Write([]byte("00" + data.Id))
+
+					name = data.Name
+					fmt.Println("login success")
+					break
+				} else {
+					fmt.Println("your account is currently logged onto another device")
+				}
 			}
 			fmt.Println("user not found")
 		} else if text == "register" {
@@ -56,10 +68,6 @@ func main() {
 			}
 		}
 
-		conn, err := net.Dial("tcp", "218.50.42.8:9393")
-		if nil != err {
-			log.Println(err)
-		}
 		state = "start"
 		fmt.Println("Finding Opponent...")
 		defer conn.Close()
@@ -120,8 +128,11 @@ func login() Data {
 			break
 		}
 	}
-	result := apiCall("POST", "http://localhost:9494/api/login", `{"ID":"`+id+`", "Pwd":"`+pwd+`"}`)
-	return result
+	return apiCall("POST", "http://localhost:9494/api/login", `{"ID":"`+id+`", "Pwd":"`+pwd+`"}`)
+}
+
+func checkStatus(id string) Data {
+	return apiCall("GET", "http://localhost:9494/api/login/status/"+id, `{}`)
 }
 
 func register() Data {
@@ -164,8 +175,7 @@ func register() Data {
 			}
 		}
 	}
-	result := apiCall("POST", "http://localhost:9494/api/register", `{"ID":"`+id+`", "Pwd":"`+pwd+`", "Name":"`+name+`"}`)
-	return result
+	return apiCall("POST", "http://localhost:9494/api/login", `{"ID":"`+id+`", "Pwd":"`+pwd+`"}`)
 }
 
 func skills(text string, conn net.Conn, roomNo string) {

@@ -14,10 +14,11 @@ import (
 )
 
 type Result struct {
-	ID    string
-	Pwd   string
-	Name  string
-	Count int
+	ID     string
+	Pwd    string
+	Name   string
+	Count  int
+	Status string
 }
 
 type Body struct {
@@ -37,7 +38,17 @@ func login(w http.ResponseWriter, r *http.Request) {
 	var body Body
 	_ = json.NewDecoder(r.Body).Decode(&body)
 
-	conn().Raw("SELECT name FROM user_list WHERE id = ? AND pwd = ? AND delyn = 'N'", body.ID, body.Pwd).Scan(&result)
+	conn().Raw("SELECT id, name FROM user_list WHERE id = ? AND pwd = ? AND delyn = 'N'", body.ID, body.Pwd).Scan(&result)
+	fmt.Println(result)
+	json.NewEncoder(w).Encode(result)
+}
+
+func statusCheck(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	var result Result
+
+	conn().Raw("SELECT status FROM user_list WHERE id = ?", params["id"]).Scan(&result)
 	fmt.Println(result)
 	json.NewEncoder(w).Encode(result)
 }
@@ -82,6 +93,7 @@ func main() {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/api/login", login).Methods("POST")
+	r.HandleFunc("/api/login/status/{id}", statusCheck).Methods("GET")
 	r.HandleFunc("/api/register", register).Methods("POST")
 	r.HandleFunc("/api/register/idCheck/{id}", idCheck).Methods("GET")
 	r.HandleFunc("/api/register/nmCheck/{name}", nmCheck).Methods("GET")
@@ -92,7 +104,8 @@ func main() {
 }
 
 func conn() *gorm.DB {
-	dsn := "host=218.50.42.8 user=postgres password=365365 dbname=postgres port=5432 sslmode=disable"
+	dsn := "host=localhost user=postgres password=365365 dbname=postgres port=5432 sslmode=disable"
+	// dsn := "host=218.50.42.8 user=postgres password=365365 dbname=postgres port=5432 sslmode=disable"
 	db, err := gorm.Open(postgres.Open(dsn))
 
 	if err != nil {
