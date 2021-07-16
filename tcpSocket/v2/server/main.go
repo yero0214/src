@@ -43,6 +43,8 @@ type Player struct {
 	Champ Champ
 	x     int
 	y     int
+	cx    int
+	cy    int
 }
 
 var champs []Champ
@@ -61,6 +63,7 @@ func main() {
 	go reactor(resChan, userChan, queueChan, locChan)
 	go addUser(&users, userChan)
 	go queue(&users, &rooms, queueChan)
+	go locationChange(locChan)
 
 	l, err := net.Listen("tcp", ":9393")
 	if nil != err {
@@ -115,6 +118,7 @@ func reactor(resChan chan Res, userChan chan User, queueChan chan int, locChan c
 			readyChk(val.Data[2:])
 		case "14":
 			// update the game
+			fmt.Println("14")
 			locChan <- val.Data[2:]
 		case "15":
 			fmt.Println("15")
@@ -176,11 +180,15 @@ func champSelected(data []byte) {
 		rooms[roomNo].Game.Player1.Name = users[userNo].Name
 		rooms[roomNo].Game.Player1.x = 0
 		rooms[roomNo].Game.Player1.y = 0
+		rooms[roomNo].Game.Player1.cx = 0
+		rooms[roomNo].Game.Player1.cy = 0
 	} else if playerNo == 1 {
 		rooms[roomNo].Game.Player2.Champ = champs[champNo]
 		rooms[roomNo].Game.Player2.Name = users[userNo].Name
 		rooms[roomNo].Game.Player2.x = 100
 		rooms[roomNo].Game.Player2.y = 100
+		rooms[roomNo].Game.Player2.cx = 100
+		rooms[roomNo].Game.Player2.cy = 100
 	}
 
 	var ready int
@@ -210,20 +218,23 @@ func readyChk(data []byte) {
 		broadCast(&rooms[roomNo], "03"+"2"+p2ChampNo+p2Name)
 		time.Sleep(2 * time.Second)
 		go inGame(&rooms[roomNo])
+		go locationUpdate(&rooms[roomNo])
 	}
 }
 
 func inGame(room *Room) {
 	room.Game.State = true
 	for room.Game.State {
-		time.Sleep(1000 * time.Microsecond)
+		time.Sleep(time.Second)
 		p1Hp := makeNo(room.Game.Player1.Champ.Hp)
 		p1x := makeNo(room.Game.Player1.x)
-		p1y := makeNo(room.Game.Player1.x)
+		p1cx := makeNo(room.Game.Player1.cx)
+		p1y := makeNo(room.Game.Player1.y)
 		p2Hp := makeNo(room.Game.Player2.Champ.Hp)
+		p2cx := makeNo(room.Game.Player1.cx)
 		p2x := makeNo(room.Game.Player2.x)
-		p2y := makeNo(room.Game.Player2.x)
-		broadCast(room, "05"+p1Hp+p1x+p1y+p2Hp+p2x+p2y)
+		p2y := makeNo(room.Game.Player2.y)
+		broadCast(room, "05"+p1Hp+p1x+p1y+p2Hp+p2x+p2y+p1cx+p2cx)
 	}
 }
 
@@ -250,8 +261,52 @@ func makeNo(num int) string {
 }
 
 func locationChange(locChan chan []byte) {
-	// loc := <-locChan
-	// for{
+	for {
+		loc := <-locChan
+		roomNo, _ := strconv.Atoi(string(loc[9:]))
+		if string(loc[8:9]) == "0" {
+			rooms[roomNo].Game.Player1.cx, _ = strconv.Atoi(string(loc[:4]))
+			rooms[roomNo].Game.Player1.cy, _ = strconv.Atoi(string(loc[4:8]))
+		} else if string(loc[8:9]) == "1" {
+			rooms[roomNo].Game.Player2.cx, _ = strconv.Atoi(string(loc[:4]))
+			rooms[roomNo].Game.Player2.cy, _ = strconv.Atoi(string(loc[4:8]))
+		}
+	}
+}
 
-	// }
+func locationUpdate(room *Room) {
+	for room.Game.State {
+		time.Sleep(time.Millisecond)
+		if room.Game.Player1.cx > room.Game.Player1.x {
+			room.Game.Player1.x++
+		} else if room.Game.Player1.cx < room.Game.Player1.x {
+			room.Game.Player1.x--
+		} else {
+			continue
+		}
+
+		if room.Game.Player1.cy > room.Game.Player1.y {
+			room.Game.Player1.y++
+		} else if room.Game.Player1.cy < room.Game.Player1.y {
+			room.Game.Player1.y--
+		} else {
+			continue
+		}
+
+		if room.Game.Player2.cx > room.Game.Player2.x {
+			room.Game.Player2.x++
+		} else if room.Game.Player2.cx < room.Game.Player2.x {
+			room.Game.Player2.x--
+		} else {
+			continue
+		}
+
+		if room.Game.Player2.cy > room.Game.Player2.y {
+			room.Game.Player2.y++
+		} else if room.Game.Player2.cy < room.Game.Player2.y {
+			room.Game.Player2.y--
+		} else {
+			continue
+		}
+	}
 }

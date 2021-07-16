@@ -56,6 +56,7 @@ func reactor(res chan []byte, user *User) {
 			found(data[2:])
 		case "02":
 			// game start
+			fmt.Println("here")
 			write("13" + roomNo)
 			cls()
 		case "03":
@@ -91,7 +92,7 @@ func found(data []byte) {
 	time.Sleep(2 * time.Second)
 	cls()
 	selectChamp()
-	inGame()
+	go inGame()
 }
 
 func selectChamp() {
@@ -130,6 +131,10 @@ func update(data []byte) {
 	game.Player2.Champ.Hp, _ = strconv.Atoi(string(data[12:16]))
 	game.Player2.x, _ = strconv.Atoi(string(data[16:20]))
 	game.Player2.y, _ = strconv.Atoi(string(data[20:24]))
+
+	game.Player1.cx, _ = strconv.Atoi(string(data[24:28]))
+	game.Player2.cx, _ = strconv.Atoi(string(data[28:32]))
+
 	fmt.Println(game)
 }
 
@@ -137,10 +142,11 @@ func inGame() {
 	state = true
 	for state {
 		text := input()
+		fmt.Println("here")
 		click(text)
 	}
 }
 
 func click(loc string) {
-	write("14" + loc)
+	write("14" + loc + playerNo + roomNo)
 }

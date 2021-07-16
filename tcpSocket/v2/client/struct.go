@@ -25,4 +25,6 @@ type Player struct {
 	Champ Champ
 	x     int
 	y     int
+	cx    int
+	cy    int
 }
