@@ -20,7 +20,7 @@ var count int
 
 func main() {
 
-	inGame()
+	go inGame()
 
 	l, err := net.Listen("tcp", ":9393")
 	if nil != err {
@@ -46,6 +46,7 @@ func ConnHandler(conn net.Conn) {
 		n, err := conn.Read(recvBuf)
 		if nil != err {
 			log.Println(err)
+			return
 		}
 		if 0 < n {
 			data := recvBuf[:n]
