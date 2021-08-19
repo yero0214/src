@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "BDtSb+HW+KuFFXh32TuHsL0oXGg9hrx/uHieTgpzMyXFAQH4zGk07Lo6mrHnsiyRG44GAp104AcVijTCs5UgIA==",
+  "dgSpecHash": "rnFEmnnAuSL241y1u+8xmH4nqp9LGhbAbdxE8Ix1GmB4N4iLojrVH5xcyyslhkXpHS2UTZaC67I2zznDtRSAmQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\USER\\go\\src\\tcpSocket\\client\\client.csproj",
+  "projectFilePath": "C:\\Users\\USER\\go\\src\\tcpSocket\\client\\cs\\client.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }
