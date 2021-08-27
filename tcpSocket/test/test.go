@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"net"
@@ -13,6 +14,8 @@ type User struct {
 	no   int
 	x    int
 	y    int
+	cx   int
+	cy   int
 }
 
 var users []User
@@ -21,6 +24,8 @@ var count int
 func main() {
 
 	go inGame()
+	go yUpdate()
+	go xUpdate()
 
 	l, err := net.Listen("tcp", ":9393")
 	if nil != err {
@@ -34,7 +39,10 @@ func main() {
 			log.Println(err)
 			continue
 		}
-		users = append(users, User{Conn: conn, no: count, x: randomNum(), y: randomNum()})
+		x := randomNum()
+		y := randomNum()
+
+		users = append(users, User{Conn: conn, no: count, x: x, y: y, cx: x, cy: y})
 		count++
 		go ConnHandler(conn)
 	}
@@ -45,15 +53,24 @@ func ConnHandler(conn net.Conn) {
 	for {
 		n, err := conn.Read(recvBuf)
 		if nil != err {
+			for i, _ := range users {
+				if users[i].Conn == conn {
+					users[i] = users[len(users)-1]
+					users[len(users)-1] = User{}
+					users = users[:len(users)-1]
+					break
+				}
+			}
 			log.Println(err)
 			return
 		}
 		if 0 < n {
 			data := recvBuf[:n]
-			for _, v := range users {
+			fmt.Println(string(data))
+			for i, v := range users {
 				if conn == v.Conn {
-					v.x, _ = strconv.Atoi(string(data[:4]))
-					v.y, _ = strconv.Atoi(string(data[4:8]))
+					users[i].cx, _ = strconv.Atoi(string(data[:4]))
+					users[i].cy, _ = strconv.Atoi(string(data[4:8]))
 				}
 			}
 		}
@@ -62,7 +79,7 @@ func ConnHandler(conn net.Conn) {
 
 func inGame() {
 	for {
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * 5)
 		var result string
 		for _, v := range users {
 			result += makeNo(v.no)
@@ -71,6 +88,36 @@ func inGame() {
 		}
 
 		broadCast(result)
+	}
+}
+
+func xUpdate() {
+	for {
+		time.Sleep(time.Second)
+		for i, _ := range users {
+			if users[i].cx > users[i].x {
+				users[i].x++
+			} else if users[i].cx < users[i].x {
+				users[i].x--
+			} else {
+				continue
+			}
+		}
+	}
+}
+
+func yUpdate() {
+	for {
+		time.Sleep(time.Second)
+		for i, _ := range users {
+			if users[i].cy > users[i].y {
+				users[i].y++
+			} else if users[i].cy < users[i].y {
+				users[i].y--
+			} else {
+				continue
+			}
+		}
 	}
 }
 

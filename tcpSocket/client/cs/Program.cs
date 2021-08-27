@@ -2,13 +2,22 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Collections.Generic;
+
+public class user{
+    string userNo;
+    string y;
+    string x;
+    byte[] bytes;
+}
+
 
 public class client {
-
+    static byte[] bytes = new byte[1024];  
+    static Socket sender;
+    static List<user> users = new List<user>();
      public static void StartClient() {  
         // Data buffer for incoming data.  
-        byte[] bytes = new byte[1024];  
-  
         // Connect to a remote device.  
         try {  
             // Establish the remote endpoint for the socket.  
@@ -18,7 +27,7 @@ public class client {
             IPEndPoint remoteEP = new IPEndPoint(ipAddress,9393);  
   
             // Create a TCP/IP  socket.  
-            Socket sender = new Socket(ipAddress.AddressFamily,
+            sender = new Socket(ipAddress.AddressFamily,
                 SocketType.Stream, ProtocolType.Tcp );  
   
             // Connect the socket to the remote endpoint. Catch any errors.  
@@ -29,16 +38,28 @@ public class client {
                     sender.RemoteEndPoint.ToString());  
   
                 // Encode the data string into a byte array.  
-                byte[] msg = Encoding.ASCII.GetBytes("This is a test\n");  
+                // byte[] msg = Encoding.ASCII.GetBytes("00010001\n");  
   
                 // Send the data through the socket.  
-                int bytesSent = sender.Send(msg);  
+                // int bytesSent = sender.Send(msg);  
   
                 // Receive the response from the remote device.
                 while(true){
-                    int bytesRec = sender.Receive(bytes);  
+                    int bytesRec = sender.Receive(bytes);
+
+                    int startno = 0;
+                    for (int i = 0; i <= 12; i++)
+                    {
+                        if(i == 12)
+                        {
+                            byte[] newArray = new byte[bytes.Length - startno];
+                            Array.Copy(bytes, startno, newArray, 0, newArray.Length);
+                            users.Add(newArray);
+                        }
+                    }
                     Console.WriteLine("Echoed test = {0}",  
                     Encoding.ASCII.GetString(bytes,0,bytesRec));  
+                    
                 }  
                 
   
