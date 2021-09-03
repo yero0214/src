@@ -54,7 +54,7 @@ public class client {
                         {
                             byte[] newArray = new byte[bytes.Length - startno];
                             Array.Copy(bytes, startno, newArray, 0, newArray.Length);
-                            users.Add(newArray);
+                            // users.Add(newArray);
                         }
                     }
                     Console.WriteLine("Echoed test = {0}",  
