@@ -35,6 +35,7 @@ func main() {
 
 	for {
 		conn, err := l.Accept()
+		log.Println(conn)
 		if nil != err {
 			log.Println(err)
 			continue

@@ -13,7 +13,7 @@ public class user{
 
 
 public class client {
-    static byte[] bytes = new byte[1024];  
+    static byte[] bytes = new byte[4096];  
     static Socket sender;
     static List<user> users = new List<user>();
      public static void StartClient() {  

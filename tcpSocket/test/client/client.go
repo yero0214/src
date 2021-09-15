@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/binary"
 	"fmt"
 	"log"
 	"net"
@@ -20,7 +21,16 @@ func main() {
 		go read(conn)
 
 		for {
-			conn.Write([]byte(input()))
+			payload := input()
+			typeOfService := make([]byte, 4)
+			payloadLength := make([]byte, 4)
+			binary.LittleEndian.PutUint32(typeOfService, 1)
+			binary.LittleEndian.PutUint32(payloadLength, 4)
+
+			packetHeader := append(typeOfService, payloadLength...)
+			buffer := append(packetHeader, []byte(payload)...)
+			log.Println(buffer)
+			conn.Write(buffer)
 		}
 	}
 }
