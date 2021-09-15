@@ -1,19 +1,10 @@
 package main
 
-import (
-	"encoding/binary"
-	"log"
-)
+import "log"
 
-func move(userId uint64, bytes []byte) {
-	log.Println("move excuted")
-
-	for i, v := range users {
-		if userId == v.userId {
-			users[i].cx = binary.LittleEndian.Uint64(bytes[:4])
-			users[i].cy = binary.LittleEndian.Uint64(bytes[4:8])
-		}
-	}
+func service1(bytes []byte) {
+	log.Println("service 1 excuted")
+	log.Println(string(bytes))
 }
 
 func service2(bytes []byte) {
