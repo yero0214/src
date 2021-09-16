@@ -2,7 +2,7 @@ package main
 
 var recvChan = make(chan []byte)
 var users []User
-var count uint64
+var count uint32
 
 func main() {
 

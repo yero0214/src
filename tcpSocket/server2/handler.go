@@ -10,6 +10,16 @@ func ConnHandler(conn net.Conn) {
 	for {
 		n, err := conn.Read(recvBuf)
 		if nil != err {
+			// remove disconnected user
+			for i, _ := range users {
+				if users[i].Conn == conn {
+					users[i] = users[len(users)-1]
+					users[len(users)-1] = User{}
+					users = users[:len(users)-1]
+					break
+				}
+			}
+
 			log.Println(err)
 			return
 		}

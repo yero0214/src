@@ -4,9 +4,9 @@ import "net"
 
 type User struct {
 	Conn   net.Conn
-	userId uint64
-	x      uint64
-	y      uint64
-	cx     uint64
-	cy     uint64
+	userId uint32
+	x      uint32
+	y      uint32
+	cx     uint32
+	cy     uint32
 }
