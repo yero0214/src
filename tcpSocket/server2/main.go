@@ -7,8 +7,7 @@ var count uint32
 func main() {
 
 	go inGame()
-	go yUpdate()
-	go xUpdate()
+	go positionUpdate()
 	go controller()
 
 	startListen("9393")
