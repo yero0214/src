@@ -1,18 +1,19 @@
 package main
 
 import (
-	"encoding/binary"
 	"log"
 )
 
 func move(userId uint32, bytes []byte) {
 	log.Println("move excuted")
-	log.Println(bytes)
+	// log.Println(bytes)
 
 	for i, v := range users {
 		if userId == v.userId {
-			users[i].cx = binary.LittleEndian.Uint32(bytes[:4])
-			users[i].cy = binary.LittleEndian.Uint32(bytes[4:8])
+			position := byteSliceToFloat32Slice(bytes)
+			log.Println(position)
+			users[i].cx = position[0]
+			users[i].cy = position[1]
 		}
 	}
 }

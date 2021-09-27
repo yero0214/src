@@ -1,6 +1,6 @@
 package main
 
-var recvChan = make(chan []byte)
+var recvChan = make(chan Recv)
 var users []User
 var count uint32
 

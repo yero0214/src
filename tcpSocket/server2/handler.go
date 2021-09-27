@@ -5,7 +5,7 @@ import (
 	"net"
 )
 
-func ConnHandler(conn net.Conn) {
+func ConnHandler(conn net.Conn, count uint32) {
 	recvBuf := make([]byte, 4096)
 	for {
 		n, err := conn.Read(recvBuf)
@@ -20,15 +20,17 @@ func ConnHandler(conn net.Conn) {
 				}
 			}
 
-			log.Println(err)
+			log.Println("1111111", err)
 			return
 		}
 		if 0 < n {
 			// data := recvBuf[:n]
 			// log.Println(string(data))
 			// log.Println(data)
-			log.Println(n)
-			recvChan <- recvBuf[:n]
+			// log.Println(n)
+			recv := Recv{userId: count, buffer: recvBuf[:n]}
+
+			recvChan <- recv
 		}
 	}
 }

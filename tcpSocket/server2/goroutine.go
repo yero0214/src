@@ -2,12 +2,13 @@ package main
 
 import (
 	"encoding/binary"
+	"math"
 	"time"
 )
 
 func inGame() {
 	for {
-		time.Sleep(time.Millisecond * 10)
+		time.Sleep(time.Millisecond * 16)
 
 		var buffer []byte
 		var payload []byte
@@ -17,10 +18,10 @@ func inGame() {
 			userId := make([]byte, 4)
 			x := make([]byte, 4)
 			y := make([]byte, 4)
-
+			math.Float32bits(v.x)
 			binary.LittleEndian.PutUint32(userId, v.userId)
-			binary.LittleEndian.PutUint32(x, v.x)
-			binary.LittleEndian.PutUint32(y, v.y)
+			binary.LittleEndian.PutUint32(x, math.Float32bits(v.x))
+			binary.LittleEndian.PutUint32(y, math.Float32bits(v.y))
 			payload = append(payload, userId...)
 			payload = append(payload, x...)
 			payload = append(payload, y...)
@@ -37,18 +38,19 @@ func inGame() {
 }
 
 func positionUpdate() {
+	speed := float32(5)
 	for {
-		time.Sleep(time.Millisecond * 10)
+		time.Sleep(time.Millisecond * 16)
 		for i, _ := range users {
-			if users[i].cx > users[i].x {
-				users[i].x++
-			} else if users[i].cx < users[i].x {
-				users[i].x--
+			if users[i].cx > users[i].x+speed {
+				users[i].x += speed
+			} else if users[i].cx < users[i].x-speed {
+				users[i].x -= speed
 			}
-			if users[i].cy > users[i].y {
-				users[i].y++
-			} else if users[i].cy < users[i].y {
-				users[i].y--
+			if users[i].cy > users[i].y+speed {
+				users[i].y += speed
+			} else if users[i].cy < users[i].y-speed {
+				users[i].y -= speed
 			}
 		}
 	}

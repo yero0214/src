@@ -22,12 +22,13 @@ func startListen(port string) {
 			continue
 		}
 
-		x := uint32(randomNum(10, 90))
-		y := uint32(randomNum(10, 90))
-
+		// x := float32(randomNum(10, 90))
+		// y := float32(randomNum(10, 90))
+		x := float32(50)
+		y := float32(50)
 		users = append(users, User{Conn: conn, userId: count, x: x, y: y, cx: x, cy: y})
-		count++
 
-		go ConnHandler(conn)
+		go ConnHandler(conn, count)
+		count++
 	}
 }
